@@ -53,7 +53,7 @@ It does not contain application code.
 ## White Paper
 
 - *ESM: A Turn-Based Control Architecture (v0.9)*  
-  `paper/ESM_Turn_Based_Control_Architecture_v0.9.pdf`
+  [Download PDF](paper/ESM_Turn_Based_Control_Architecture_v0.9.pdf)
 
 ---
 
@@ -61,7 +61,7 @@ It does not contain application code.
 
 Canonical engineering specification:
 
-`spec/esm_spec.md`
+[spec/esm_spec.md](spec/esm_spec.md)
 
 An implementation must satisfy this specification to be considered ESM-compliant.
 
