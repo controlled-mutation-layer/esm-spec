@@ -1,4 +1,4 @@
-cat > README.md <<'EOF'
+
 # Emergent State Machine (ESM)
 
 The Emergent State Machine (ESM) is a turn-based control architecture pattern within the broader **Controlled Mutation Layer (CML)** framework.
@@ -95,4 +95,3 @@ CML is an architectural direction — not a closed product.
 ## License
 
 MIT License.
-EOF
