@@ -3,15 +3,17 @@ Architectural Specification (vCurrent)
 
 1. System Definition
 
-The Emergent State Machine (ESM) is a deterministic control architecture composed of three strictly separated layers:
+The Emergent State Machine (ESM) is a deterministic turn-based control architecture composed of three structurally separated layers:
 
-    1. Projection Operator (R) — State construction
+1. Signal Layer — Structured state observation
+2. Projection Layer — Interpretable state construction
+3. Authority Layer — Deterministic, versioned mutation control
 
-    2. Deterministic Policy (pi) — Action authority
+All authoritative state mutation occurs exclusively within the Authority Layer.
 
-    3. Schema-Constrained Generative Instrument (G) — Optional bounded assistance
+Optional generative mechanisms MAY be used as bounded assistance but SHALL NOT possess decision authority.
 
-Behavioral evolution occurs only through explicit, versioned modification.
+Behavioral evolution occurs only through explicit, versioned modification of system components.
 
 The architecture guarantees determinism, replayability, and traceable change.
 
@@ -86,7 +88,7 @@ Role presence signals
 
 No feature may be unbounded.
 
-5. Projection Operator (R)
+5. Projection Layer
 
 Projection maps feature space to role space:
 
@@ -113,6 +115,26 @@ Properties:
 
 Projection describes structural state.
 Projection does not decide action.
+
+### Projection Determinism and Allowed Implementations
+
+The Projection Layer MAY be implemented as a linear operator (e.g., `r_t = R x_t`) or as any versioned projection function `P`.
+
+Regardless of implementation, projection MUST satisfy the following:
+
+- **Replayability:** Projection MUST be reproducible given its recorded inputs and identifiers, including:
+  - `signal_pack_id`
+  - `projection_version_id`
+  - `projection_input_ref` (immutable reference or content hash)
+  - `projection_env_id` (versioned execution environment descriptor, e.g., runtime + library versions, and any required platform identifiers)
+
+- **No Authority:** Projection MUST NOT directly mutate authoritative state.
+
+- **Structured Output:** Projection outputs MUST be representable in structured form suitable for deterministic policy evaluation.
+
+- **Versioning:** Projection logic MUST be explicitly versioned. Any change to projection logic, preprocessing, or environment SHALL result in a new `projection_version_id` and/or `projection_env_id`.
+
+The ESM specification RECOMMENDS **bit-for-bit replay** for projection outputs wherever feasible. If an implementation cannot guarantee bit-for-bit replay due to platform constraints, it MUST explicitly declare a deterministic replay contract (including any tolerance policy) and MUST record the relevant environment identifiers necessary to validate replay.
 
 6. Deterministic Policy (pi)
 
@@ -164,23 +186,18 @@ Examples:
 
 Control state is bounded and versioned.
 
-8. Optional Generative Instrument (G)
+8. Optional Generative Assistance
 
-Generation is optional and invoked only when policy permits.
+Generative mechanisms MAY be invoked within the Projection Layer or as bounded assistance under policy authorization.
 
-g_t = G(I_t, schema)
+Generative outputs:
 
-Constraints:
+- MUST conform to explicit schema.
+- MUST NOT mutate authoritative state directly.
+- MUST be versioned and trace-bound if included in authorization context.
+- SHALL fail closed on validation violation.
 
-- Output must conform to schema
-
-- Schema validation is required
-
-- Fail-closed on violation
-
-- No authority to override policy
-
-Generative output may inform feature computation but cannot bypass pi.
+Generative mechanisms possess no decision authority.
 
 9. Execution Flow
 
