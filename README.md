@@ -4,9 +4,9 @@ The **Emergent State Machine (ESM)** is a turn-based control architecture for go
 
 ESM makes the decision boundary explicit by separating:
 
-- **Signals** (measurement)
-- **Interpretation** (evaluation)
-- **Authorization** (authority to mutate state)
+- **Signals** - measurement
+- **Interpretation** - evaluation
+- **Authorization** - authority to mutate state
 
 Each interaction is bound into a **Turn**, which records the versions of signal logic, interpretation logic, and authorization policy in effect at that moment. State may only evolve through this structured boundary.
 
