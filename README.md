@@ -23,28 +23,31 @@ For systems that require a deterministic and instrumented mutation boundary, the
 
 ### ESM Turn Structure
 ```
+### ESM Turn Structure
+
+```text
 Input (u_t)
-│
-▼
-┌───────────────┐
-│ Signal Layer │
-│ Measurement │
-└───────────────┘
-│
-▼
-┌─────────────────┐
-│ Projection Layer │
-│ Interpretation │
-└─────────────────┘
-│
-▼
-┌─────────────────┐
-│ Authority Layer │
-│ Policy Decision │
-└─────────────────┘
-│
-▼
-State Mutation (m_{t+1})
+    │
+    ▼
+[ Signal Layer ]
+  Measurement
+    │
+    ▼
+[ Projection Layer ]
+  Interpretation
+    │
+    ▼
+==============================
+ Authoritative Mutation Boundary
+ (often implemented via CML)
+==============================
+    │
+    ▼
+[ Authority Layer ]
+  Policy Decision
+    │
+    ▼
+State Mutation (m_t → m_{t+1})
 ```
 Each **Turn** records the versions of:
 
