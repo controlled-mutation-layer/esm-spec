@@ -87,9 +87,17 @@ Additional implementations are welcome.
 
 ## Release Notes
 
+v0.9.1 - Late pre-release draft of the Emergent State Machine architectural specification.
+
+This version captures the architecture immediately prior to the first stable public release and serves as a historical reference point in the development of the spec.
+
+It is retained for version continuity and comparison with v1.0.0.
+
+
 v1.0.0 – Clarified architecture
 
 Improves terminology around primitive detectors and signals, explicitly locates probabilistic interpretation in the Projection Layer, and introduces hierarchical composition of ESMs.
+
 
 ## Join the Conversation
 
