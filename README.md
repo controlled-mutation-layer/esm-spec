@@ -19,7 +19,7 @@ The result is a system where evolution is:
 
 ESM is domain-agnostic. It applies wherever probabilistic interpretation and consequential state mutation must coexist — including AI-assisted systems, digital twins, enterprise workflows, and learning platforms.
 
-For systems that require a deterministic and instrumented mutation boundary, ESM formalizes that layer through a **Controlled Mutation Layer (CML)**.
+For systems that require a deterministic and instrumented mutation boundary, the ESM architecture can be implemented using a Controlled Mutation Layer (CML).
 
 ---
 
@@ -40,7 +40,9 @@ This entanglement makes systems difficult to:
 
 ESM addresses this by enforcing a strict architectural separation between descriptive projection and authoritative mutation.
 
-Behavioral change may occur only through explicit, versioned state transitions mediated by the Controlled Mutation Layer (CML) — never through implicit drift.
+Behavioral change may occur only through explicit, versioned state transitions at the authoritative mutation boundary — never through implicit drift.
+
+In many implementations, this boundary is enforced through a Controlled Mutation Layer (CML).
 
 ---
 
