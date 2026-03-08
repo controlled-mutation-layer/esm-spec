@@ -87,17 +87,60 @@ Additional implementations are welcome.
 
 ## Release Notes
 
-v0.9.1 - Late pre-release draft of the Emergent State Machine architectural specification.
+## Specification
 
-This version captures the architecture immediately prior to the first stable public release and serves as a historical reference point in the development of the spec.
+The canonical Emergent State Machine architecture specification is located at:
 
-It is retained for version continuity and comparison with v1.0.0.
+- [`spec/esm_spec.md`](spec/esm_spec.md)
 
+Current version: **v1.0.0**
 
-v1.0.0 – Clarified architecture
+---
 
-Improves terminology around primitive detectors and signals, explicitly locates probabilistic interpretation in the Projection Layer, and introduces hierarchical composition of ESMs.
+## Release History
 
+### v1.0.0 — First Public Release
+
+First public release of the Emergent State Machine (ESM) architectural specification.
+
+This release clarifies:
+
+- the separation of Signal, Projection, and Authority layers
+- primitive detectors, signals, and feature vectors
+- deterministic policy as the exclusive mutation authority
+- the placement of probabilistic interpretation within the Projection Layer
+- hierarchical composition of nested ESMs
+- norm ladders as staged operational or learning progressions
+
+See:
+- [`spec/esm_spec.md`](spec/esm_spec.md)
+- [GitHub Release: v1.0.0](../../releases/tag/v1.0.0)
+
+### v0.9.1 — Late Pre-Release Draft
+
+Late pre-release draft of the Emergent State Machine architectural specification.
+
+This version is retained as a historical reference point immediately prior to the first stable public release.
+
+Contents at this tag included:
+
+- draft specification at `spec/esm_spec.md`
+- accompanying draft paper and LaTeX sources
+
+See:
+- [GitHub Release: v0.9.1](../../releases/tag/v0.9.1)
+
+---
+
+## Citation
+
+If you reference the Emergent State Machine architecture in research or technical work, please cite:
+
+**Emergent State Machine (ESM) Architectural Specification v1.0.0**  
+Emergent State Machine Project  
+[https://github.com/emergent-state-machine/esm-spec](https://github.com/emergent-state-machine/esm-spec)
+
+---
 
 ## Join the Conversation
 
