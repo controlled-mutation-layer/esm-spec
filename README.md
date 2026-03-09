@@ -18,7 +18,7 @@ Major clarifications include:
 
 The paper now reflects the current architectural model used in the ESM specification.
 
-- 📄 [PDF](papers/Emergent_State_Machine__Control_Architecture_v1.0.0.pdf)
+- 📄 [PDF](papers/esm-architecture/Emergent_State_Machine__Control_Architecture_v1.0.0.pdf)
 
 ## Designing the Digital Learning Companion
 
