@@ -1,0 +1,726 @@
+% !TEX root = esm_architecture.tex
+
+\documentclass[11pt]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}        % cleaner font
+\usepackage{microtype}      % better spacing
+\usepackage{amsmath, amssymb}
+\usepackage{graphicx}
+\usepackage[hypertexnames=false]{hyperref}
+\usepackage{geometry}
+\usepackage{setspace}
+\usepackage{titlesec}
+\usepackage{amsthm}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{natbib}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning, calc}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+
+% --- Paper versioning ---
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\newcommand{\paperVersion}{1.1.0}
+\newcommand{\paperDate}{March 15, 2026}
+
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+
+\lhead{Richard Hines}
+\rhead{ESM — Version \paperVersion}
+\cfoot{\thepage}
+\rfoot{\paperDate}
+
+\date{}
+
+
+% ----------------------------
+% Layout
+% ----------------------------
+
+\geometry{margin=1.15in}
+\onehalfspacing
+
+\titleformat{\section}
+  {\Large\bfseries}
+  {\thesection}{0.5em}{}
+
+% ----------------------------
+% Theorem environments
+% ----------------------------
+
+\newtheorem{definition}{Definition}
+
+% ----------------------------
+% Listings (Pseudocode)
+% ----------------------------
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  frame=single,
+  columns=fullflexible,
+  keepspaces=true,
+  showstringspaces=false,
+  xleftmargin=1em,
+  xrightmargin=1em,
+  aboveskip=1em,
+  belowskip=1em
+}
+
+% ----------------------------
+% Title
+% ----------------------------
+\title{Emergent State Machines:\\
+A Deterministic Architecture for Situational Reasoning in Complex Systems}
+
+\author{
+Richard Hines\\
+\small Independent Researcher\\
+\small Tacoma, Washington, USA\\
+\small \texttt{richardhinestacoma@gmail.com}\\
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This paper presents the mathematical foundations of the Emergent State Machine (ESM), a deterministic architecture for interpretable situational reasoning in complex systems. The central organizing unit of the architecture is the \emph{turn}: a complete reasoning frame in which observations from the environment are transformed into signals, assembled into an interpretable state vector, evaluated relative to policy-defined dimensions, and mapped deterministically to an action. By structuring system behavior as a sequence of turns, the ESM makes reasoning processes inspectable, replayable, and auditable.
+
+Within each turn, raw observations are converted into direct and derived signals defined by domain experts. These signals form an explicit state vector representing the system’s current situation. A projection mechanism then expresses that state in policy-relevant coordinates, enabling deterministic policy selection without collapsing reasoning into latent or opaque representations. Repeated turns generate trajectories through interpretable state space, allowing policies to guide the system toward desirable stable regions and away from undesirable ones.
+
+Unlike architectures that entangle probabilistic interpretation with consequential action, the ESM preserves a structural boundary between state representation and authoritative policy selection. This separation supports traceability, failure localization, and controlled system evolution through versioned revision of signals, projections, and policies. The resulting framework provides a mathematically structured approach to decision systems whose reasoning must remain visible, reproducible, and governable across domains including clinical monitoring, learning systems, and operational control.
+
+\href{https://github.com/emergent-state-machine/esm-spec}{github.com/emergent-state-machine/esm-spec}
+
+\end{abstract}
+
+\paragraph{Contribution Statement.}
+This paper makes four principal contributions. First, it defines the \emph{turn} as the atomic reasoning object of an Emergent State Machine, providing a formal unit for inspection, replay, and audit. Second, it presents a deterministic state-space formulation in which observations are transformed into signals, state vectors, policy projections, and actions through an explicit reasoning chain. Third, it shows how repeated turns generate trajectories through interpretable state space, enabling policy to guide system evolution toward desirable stable regions. Fourth, it formalizes \emph{Instrumented Deterministic Evolution} as a regime in which behavioral change occurs only through explicit revision of versioned architectural artifacts rather than through hidden parameter drift.
+
+
+% ----------------------------
+% Introduction
+% ----------------------------
+
+\section{Introduction}
+
+Many contemporary decision systems operate as opaque pipelines in which complex transformations produce outputs without exposing the intermediate reasoning steps that led to those outputs. In domains such as clinical care, education, and operational control, this opacity creates a practical problem: professionals remain responsible for consequential decisions, yet the computational systems supporting those decisions often do not provide an inspectable account of how those decisions were reached. Threshold-triggered alerting systems partially address this problem by surfacing selected measurements, but they typically expose signals rather than situations. Human operators must still reconstruct the situational meaning of those signals for themselves.
+
+The Emergent State Machine (ESM) addresses this limitation by structuring automated reasoning into discrete, inspectable units called \emph{turns}. A turn is the fundamental reasoning frame of the system. During a turn, observations are collected from the environment, transformed into direct and derived signals, assembled into an interpretable state vector, evaluated through policy-relevant projections, and mapped deterministically to an action. The turn therefore serves as the minimal object required to inspect, replay, reproduce, and audit system reasoning.
+
+This framing is important for both theory and practice. Theoretically, it allows the ESM to be modeled as a dynamical system evolving through an interpretable state space. Practically, it gives system designers and domain experts a concrete artifact that can be logged, examined, and revised. Rather than treating reasoning as an invisible process inside a model, the ESM makes each reasoning step explicit. Each turn packages the information available to the system, the transformations applied to that information, the policy dimensions activated, and the action selected. A sequence of turns therefore provides both a trajectory through state space and a structured record of how the system’s reasoning unfolded.
+
+The architecture developed here differs from systems that entangle probabilistic interpretation with authoritative action selection. In the ESM, observations, signals, state representation, policy projection, and policy action remain structurally separated. This separation preserves interpretability and makes system behavior traceable. The resulting reasoning chain can be inspected in both directions: from observations forward to action, and from action backward to the observations and rules that produced it. Because the architecture is deterministic at the authoritative layer, system behavior is replayable under fixed versions of its governing artifacts.
+
+This paper presents the mathematical foundations of that architecture. It first defines the turn as the atomic unit of reasoning, then formalizes the transformation from observations to signals, state vectors, and policy space. It next describes state evolution, trajectories, desirable regions, and stable states in interpretable state space. Finally, it shows how determinism, auditability, and replayability support a regime of \emph{Instrumented Deterministic Evolution}, in which system behavior changes only through explicit revision of versioned architectural components.
+
+
+\begin{itemize}
+\item observations, representing measurements or events in the monitored environment
+\item signals, which are direct or derived quantities computed from observations
+\item state vectors, organizing signals into a structured representation of the current situation
+\item projection into policy space, evaluating the state relative to defined decision dimensions
+\item policy selection, determining the appropriate action for the identified situation
+\item state evolution, occurring as the system receives new observations over time
+\end{itemize}
+
+By making each stage explicit and inspectable, the ESM provides a transparent alternative to black-box decision systems. Each decision can be traced through a deterministic chain linking actions to rules, signals, and raw observations.
+
+The architectural principles underlying the Emergent State Machine draw on ideas from control theory, dynamical systems, software architecture, and research on situation awareness and AI governance. The relationship between these traditions and the ESM architecture is discussed in Section~\ref{sec:related_work}.
+
+% ----------------------------
+% 2. The Turn as the Fundamental Unit of Reasoning 
+% ----------------------------
+
+
+\section{The Turn as the Fundamental Unit of Reasoning}
+
+The Emergent State Machine organizes reasoning into discrete computational units called \emph{turns}. A turn represents one complete cycle of observation, interpretation, policy evaluation, and action selection. Rather than treating system reasoning as a continuous and opaque transformation, the ESM treats each turn as an explicit object that can be inspected, replayed, and reproduced.
+
+At time $t$, a turn may be represented abstractly as
+
+\begin{equation}
+T_t = (o_t, S_t, x_t, g_t, y_t, a_t)
+\end{equation}
+
+where
+
+\begin{itemize}
+\item $o_t$ denotes the observations available at time $t$,
+\item $S_t$ denotes the set of direct and derived signals computed from those observations,
+\item $x_t$ denotes the interpretable state vector constructed from those signals,
+\item $g_t$ denotes the activation gate state,
+\item $y_t$ denotes the representation of the state in policy coordinates,
+\item $a_t$ denotes the action selected by policy.
+\end{itemize}
+
+This formulation makes explicit that a turn is not merely a timestamped input or output. It is the full reasoning frame of the system at that moment. Each turn contains the information needed to reconstruct the system’s situational interpretation and the policy logic that produced its action.
+
+\begin{figure}[H]
+\centering
+\input{../../figures/esm-core-loop.tex}
+\caption{Core reasoning loop of an Emergent State Machine. Each turn transforms observations into signals, constructs a state vector, projects the state into policy coordinates, and selects an action.}
+\label{fig:esm-core-loop}
+\end{figure}
+
+At initialization, before observations have been received, the system has no domain-specific state for the monitored case:
+
+\begin{equation}
+T_0 = (\varnothing, \varnothing, \varnothing, 0, \varnothing, \varnothing)
+\end{equation}
+
+However, the system is not structurally empty. The signal definitions, gate conditions, policy dimensions, and policy rules already exist as versioned architectural artifacts. The first non-empty turn begins when observations arrive and the system constructs its first signal set and state vector.
+
+A sequence of turns forms the temporal structure of ESM reasoning:
+
+\begin{equation}
+T_0 \rightarrow T_1 \rightarrow T_2 \rightarrow \dots
+\end{equation}
+
+This sequence corresponds to the evolution of the monitored system through state space. Because each turn remains explicit and inspectable, the system’s reasoning process can be analyzed at the level of individual turns or at the level of trajectories formed across many turns.
+
+The concept of the turn plays two roles in the architecture. First, it is the atomic object of inspection and audit. Second, it is the temporal unit through which state trajectories are generated. In this sense, turns connect the operational behavior of the system to its mathematical formulation. What evolves over time is not an abstract hidden process, but a sequence of explicit turns whose contents remain available for replay and analysis.
+
+
+% ----------------------------
+% 3. Observations and Signals 
+% ----------------------------
+
+
+\section{Observations and Signals}
+
+Each turn of an Emergent State Machine begins with observations obtained from the environment being monitored. Observations represent measurements, events, or reported information describing the system at time $t$.
+
+Observations are denoted
+
+\begin{equation}
+o_t
+\end{equation}
+
+where $o_t$ represents the collection of raw inputs available to the system during turn $t$. These inputs may originate from sensors, instruments, logs, or structured human reporting.
+
+Observations themselves are not directly used for policy evaluation. Instead, they are transformed into \emph{signals}, which provide structured, policy-relevant quantities derived from the available observations.
+
+Signals fall into two categories: \emph{direct signals} and \emph{derived signals}.
+
+\subsection{Direct Signals}
+
+Direct signals correspond directly to measured or reported quantities within the observations. A direct signal is defined as
+
+\begin{equation}
+s_i^{direct} = m_i(o_t)
+\end{equation}
+
+where $m_i$ is a deterministic measurement function extracting the relevant value from the observations.
+
+Examples of direct signals include quantities such as heart rate, respiratory rate, oxygen saturation, or a recorded student response in an educational setting.
+
+Direct signals represent the immediate measurable properties of the system at the current turn.
+
+\subsection{Derived Signals}
+
+Derived signals represent deterministic computations defined over observations or other signals. These signals capture relationships, trends, or structural properties that are not directly observable but can be computed from available measurements.
+
+A derived signal may be written as
+
+\begin{equation}
+s_j^{derived} = f_j(o_{t-k}, \dots, o_t)
+\end{equation}
+
+or equivalently
+
+\begin{equation}
+s_j^{derived} = f_j(s_1, s_2, \dots)
+\end{equation}
+
+where $f_j$ is a deterministic function defined by system designers or domain experts.
+
+Derived signals allow the system to represent domain-specific quantities such as ratios, differences, persistence conditions, or rates of change. For example, a common clinical derived signal is the shock index
+
+\begin{equation}
+shock\_index = \frac{HR}{SBP}.
+\end{equation}
+
+Derived signals may also incorporate temporal structure by referencing observations across multiple turns.
+
+\subsection{Signal Set}
+
+The complete set of signals available during turn $t$ is denoted
+
+\begin{equation}
+S_t = \{ s_1, s_2, \dots, s_n \}.
+\end{equation}
+
+Signals provide the structured measurement interface between raw observations and the system's internal representation of the current situation. Because signals are explicitly defined and versioned, they remain interpretable and auditable across system revisions.
+
+
+
+% ----------------------------
+% 4. State Vector Construction
+% ----------------------------
+
+
+\section{State Vector Construction}
+
+Signals derived during a turn are organized into a structured mathematical representation of the system’s current condition called the state vector. Representing system behavior through explicit state vectors is standard practice in control and system identification theory \citep{ljung1999}.
+
+The practice of representing system conditions through structured feature measurements derived from observable inputs is common in statistical learning and signal-processing systems \citep{bishop2006,raghavan2014}. In the ESM architecture, these signals remain explicitly defined and inspectable rather than embedded within latent model parameters.
+
+The state vector at time $t$ is denoted
+
+\begin{equation}
+x_t
+\end{equation}
+
+and constructed from the available signals as
+
+\begin{equation}
+x_t =
+\begin{bmatrix}
+s_1 \\
+s_2 \\
+\vdots \\
+s_n
+\end{bmatrix}.
+\end{equation}
+
+Each component of the vector corresponds to a signal computed from the observations available during the current turn.
+
+Unlike latent representations commonly used in many machine learning systems, the ESM state vector is explicit and interpretable. Each element corresponds to a signal whose definition, range, and computation are known. This design ensures that the system's representation of the current situation can be inspected, verified, and revised by domain experts.
+
+The state vector therefore functions as the system's formal description of the situation being monitored at turn $t$. It captures the relevant measurable properties of the system in a structured mathematical form suitable for policy evaluation.
+
+Because the state vector is constructed deterministically from signals, identical observations will always produce identical state vectors under fixed signal definitions. This property supports replayability and traceability of system reasoning.
+
+Across successive turns, the state vector evolves as new observations arrive and new signals are computed. The resulting sequence
+
+\begin{equation}
+x_0, x_1, x_2, x_3, \dots
+\end{equation}
+
+forms a trajectory through the system's state space, representing the evolution of the monitored situation over time.
+
+
+% ----------------------------
+% Section 5 Activation Gates
+% ----------------------------
+
+
+\section{Activation Gates}
+
+Not every policy dimension or reasoning pathway is relevant for every possible system state. The Emergent State Machine therefore employs \emph{activation gates} that determine whether particular reasoning structures become active for a given turn.
+
+An activation gate evaluates conditions defined over the current state vector:
+
+\begin{equation}
+g_k = G_k(x_t)
+\end{equation}
+
+where $G_k$ is a deterministic function and
+
+\begin{equation}
+g_k \in \{0,1\}.
+\end{equation}
+
+If $g_k = 1$, the associated reasoning pathway or policy dimension becomes active. If $g_k = 0$, that pathway remains inactive for the current turn.
+
+Activation gates serve two primary purposes.
+
+First, they restrict reasoning to policy structures that are relevant to the current situation. Many systems contain policy rules designed to address specific conditions that occur only within particular regions of state space. Gates ensure that such rules activate only when the relevant structural conditions are present.
+
+Second, gates support modular reasoning architectures. By activating only the relevant portions of the policy structure, the system avoids evaluating unnecessary decision logic while preserving transparency in how reasoning pathways are selected.
+
+Activation gates may operate at multiple structural levels. Some gates control entry into high-level policy regimes, while others activate more specific reasoning pathways within those regimes. Regardless of their position in the reasoning structure, activation gates remain deterministic functions of the state vector.
+
+Because gates are defined explicitly, the conditions under which reasoning pathways activate remain inspectable and auditable. When a particular policy dimension becomes active, the gate condition responsible for that activation can be traced directly to the signals that produced the corresponding state vector.
+
+
+
+
+% ----------------------------
+% Section 6 Projection into Policy Space
+% ----------------------------
+
+\section{Projection into Policy Space}
+
+The state vector describes the current situation of the monitored system in terms of measurable signals. However, policy decisions are typically defined in terms of higher-level situational dimensions rather than individual signals. The Emergent State Machine therefore transforms the state vector into a representation expressed in policy-relevant coordinates.
+
+This transformation is called \emph{projection into policy space}.
+
+Let $P$ denote the policy projection matrix. The projection of the state vector is
+
+\begin{equation}
+y_t = P x_t
+\end{equation}
+
+where
+
+\begin{itemize}
+\item $x_t$ is the state vector constructed from signals,
+\item $P$ is the policy projection operator,
+\item $y_t$ is the representation of the state in policy coordinates.
+\end{itemize}
+
+Each component of $y_t$ corresponds to the activation level of a policy-relevant dimension. These dimensions are defined by system designers or domain experts and represent structural properties of the situation being monitored.
+
+For example, in a clinical monitoring system, projection dimensions might include degrees of respiratory instability, circulatory compromise, or metabolic disturbance. In an educational system, projection dimensions might represent claim strength, evidence relevance, or reasoning coherence.
+
+Projection therefore does not predict the future. Instead, it illuminates the current situation by expressing the measured state in coordinates relevant to policy evaluation. Representing system behavior through transformations of state vectors into decision-relevant coordinates is consistent with state-space approaches in control and estimation theory \citep{kalman1960,ljung1999}.
+
+Because projection is defined as an explicit transformation of the state vector, its behavior remains inspectable and reproducible. Changes to the projection operator correspond to explicit revisions of the system's interpretive structure rather than hidden modifications to latent representations.
+
+% ----------------------------
+% Section 7 — Policy Selection and Action
+% ----------------------------
+\section{Policy Selection and Action}
+
+Once the system's current state has been expressed in policy coordinates, the Emergent State Machine selects an action using deterministic policy rules.
+
+Let $\pi$ denote the policy function governing action selection. The action chosen at turn $t$ is
+
+\begin{equation}
+a_t = \pi(y_t)
+\end{equation}
+
+where
+
+\begin{itemize}
+\item $y_t$ is the policy-space representation of the current state,
+\item $\pi$ is the policy selection function,
+\item $a_t$ is the action selected by the system.
+\end{itemize}
+
+Policy rules encode the decision logic that governs system behavior. These rules may include threshold conditions, escalation logic, persistence requirements, or other deterministic decision criteria defined by domain experts.
+
+Because policy is deterministic, identical policy-space states will always produce identical actions under fixed policy definitions. This property ensures that system decisions remain reproducible and traceable.
+
+The full reasoning chain for a turn can therefore be expressed as
+
+\begin{equation}
+a_t \leftarrow y_t \leftarrow x_t \leftarrow S_t \leftarrow o_t.
+\end{equation}
+
+This chain allows any selected action to be traced backward through the policy projection, state vector, signals, and observations that produced it.
+
+In the Emergent State Machine architecture, policy represents the authoritative decision mechanism of the system. While projection interprets the state of the monitored system, only policy determines which actions may be taken in response.
+
+
+
+% ----------------------------
+% Section 8 State Evolution and Trajectories
+% ----------------------------
+
+\section{State Evolution and Trajectories}
+
+As new observations arrive, the Emergent State Machine constructs new turns and updates its representation of the monitored situation. Each turn therefore produces a new state vector derived from the latest observations.
+
+Let $o_{t+1}$ denote the observations available during the next turn. The system update can be written as
+
+\begin{equation}
+x_{t+1} = \Phi(x_t, o_{t+1})
+\end{equation}
+
+where $\Phi$ represents the deterministic transformation that incorporates new observations into the evolving state representation.
+
+Successive state vectors form a trajectory through state space, a standard representation used in dynamical systems and control theory \citep{astrom2010,bertsekas1995}:
+
+\begin{equation}
+x_0, x_1, x_2, x_3, \dots
+\end{equation}
+
+This trajectory represents the temporal evolution of the monitored situation.
+
+Because each state vector is constructed from explicitly defined signals, the system's trajectory through state space remains interpretable. Changes in system behavior can therefore be analyzed by examining how individual signals and policy dimensions evolve across successive turns.
+
+Temporal relationships between observations may also be incorporated into derived signals. For example, signals may capture persistence conditions, trends, or rates of change across multiple turns. These temporal signals allow the system to detect structural patterns that emerge over time rather than relying solely on instantaneous measurements.
+
+The sequence of turns
+
+\begin{equation}
+T_0 \rightarrow T_1 \rightarrow T_2 \rightarrow \dots
+\end{equation}
+
+therefore corresponds to a trajectory through the system's interpretable state space.
+
+\begin{figure}[H]
+\centering
+\input{../../figures/esm-attractor.tex}
+\caption{Example trajectory through ESM state space. System states evolve across successive turns, forming trajectories that may converge toward desirable stable regions or diverge toward undesirable conditions.}
+\label{fig:esm-attractor}
+\end{figure}
+
+
+Trajectories through state space may converge toward desirable regions, as illustrated in Figure~\ref{fig:esm-attractor}. Policy rules operate upon this evolving representation to guide the system toward desirable conditions and away from undesirable ones.
+
+
+% ----------------------------
+% Section 9 Desirable Regions and Stable States
+% ----------------------------
+
+\section{Desirable Regions and Stable States}
+
+Not all regions of state space correspond to acceptable or stable system conditions. Certain configurations of signals represent preferred operational states, while others indicate instability or risk. The Emergent State Machine therefore distinguishes between desirable and undesirable regions of state space.
+
+Let $\mathcal{X}$ denote the space of all possible state vectors. Within this space, domain experts define a subset
+
+\begin{equation}
+\mathcal{X}_D \subset \mathcal{X}
+\end{equation}
+
+representing desirable or stable system states.
+
+For example, in a clinical monitoring system, the desirable region may correspond to combinations of respiratory rate, oxygen saturation, and blood pressure within physiologically stable ranges. In an educational system, desirable regions may correspond to combinations of signals indicating coherent reasoning and evidence alignment.
+
+As the system evolves through successive turns, the sequence of state vectors
+
+\begin{equation}
+x_0, x_1, x_2, \dots
+\end{equation}
+
+forms a trajectory through state space. This trajectory may move toward or away from the desirable region $\mathcal{X}_D$.
+
+Policy rules operate on projected state representations to influence these trajectories. When the system moves toward undesirable regions of state space, policy may trigger actions designed to restore the system to stable conditions.
+
+In dynamical systems terminology, desirable regions may behave as \emph{stable attractors} \citep{strogatz2015}.. Interventions guided by policy act to steer the trajectory of the system back toward these regions when deviations occur.
+
+Not all regions of state space correspond to acceptable or stable system conditions. Certain configurations of signals represent preferred operational states, while others indicate instability or risk. The Emergent State Machine therefore distinguishes between desirable and undesirable regions of state space.
+
+Let $\mathcal{X}$ denote the space of all possible state vectors. Within this space, domain experts define a subset
+
+\begin{equation}
+\mathcal{X}_D \subset \mathcal{X}
+\end{equation}
+
+representing desirable or stable system states.
+
+For example, in a clinical monitoring system, the desirable region may correspond to combinations of respiratory rate, oxygen saturation, and blood pressure within physiologically stable ranges. In an educational system, desirable regions may correspond to combinations of signals indicating coherent reasoning and evidence alignment.
+
+As the system evolves through successive turns, the sequence of state vectors
+
+\begin{equation}
+x_0, x_1, x_2, \dots
+\end{equation}
+
+forms a trajectory through state space. This trajectory may move toward or away from the desirable region $\mathcal{X}_D$.
+
+Policy rules operate on projected state representations to influence these trajectories. When the system moves toward undesirable regions of state space, policy may trigger actions designed to restore the system to stable conditions.
+
+In dynamical systems terminology, desirable regions may behave as \emph{stable attractors}. Interventions guided by policy act to steer the trajectory of the system back toward these regions when deviations occur.
+
+The ESM therefore provides a framework in which policy does not merely respond to isolated signals but instead shapes trajectories through interpretable state space.
+
+
+% ----------------------------
+% Section 10 — Determinism, Transparency, and Auditability
+% ----------------------------
+
+\section{Determinism, Transparency, and Auditability}
+
+A central design principle of the Emergent State Machine architecture is that its reasoning process remains deterministic and inspectable.
+
+The transformation chain within each turn can be expressed as
+
+\begin{equation}
+o_t \rightarrow S_t \rightarrow x_t \rightarrow y_t \rightarrow a_t
+\end{equation}
+
+where observations are transformed into signals, signals into a state vector, the state vector into policy-space representation, and policy-space coordinates into an action.
+
+Because each stage of this transformation is explicitly defined, system decisions can be traced through the complete reasoning pathway. Any selected action can therefore be analyzed by examining the signals and observations that produced the corresponding policy-space representation.
+
+This deterministic structure provides several important properties.
+
+\subsection{Replayability}
+
+Given recorded observations and fixed definitions of signals, projection, and policy, the system will reproduce the same action for a given turn. Interaction traces can therefore be replayed to reproduce previous system behavior.
+
+Replayability enables retrospective analysis of system decisions and allows designers to evaluate alternative policies using historical interaction data.
+
+\subsection{Failure Localization}
+
+When undesirable outcomes occur, the source of the problem can be localized within the reasoning chain. Errors may originate from signal definitions, projection rules, or policy logic, but each stage remains independently inspectable.
+
+Because each component of the architecture is explicit, debugging and system refinement can proceed through targeted revisions rather than opaque model retraining.
+
+\subsection{Auditability}
+
+The reasoning chain also supports formal auditing. For any action selected by the system, the full sequence of transformations from observation to policy decision can be reconstructed.
+
+This transparency is particularly important in domains where automated decisions influence consequential outcomes, such as healthcare, education, or industrial operations.
+
+Deterministic reasoning therefore provides a structural basis for system accountability.
+
+
+
+% ----------------------------
+% Section 11 Instrumented Deterministic Evolution
+% ----------------------------
+
+\section{Instrumented Deterministic Evolution}
+
+While the Emergent State Machine produces deterministic decisions within a fixed configuration, real-world systems must evolve over time as domain knowledge improves and operational requirements change. The ESM therefore supports a regime of controlled architectural revision called \emph{Instrumented Deterministic Evolution} (IDE).
+
+Under IDE, system behavior evolves only through explicit revision of versioned architectural artifacts. These artifacts include
+
+\begin{itemize}
+\item signal definitions
+\item derived signal computations
+\item projection operators
+\item policy rules
+\end{itemize}
+
+Any modification to these components produces a new system configuration version.
+
+Because each turn records the observations, signals, state vectors, projections, and actions associated with a decision, historical interaction traces can be replayed under revised configurations. This enables designers to evaluate how policy revisions or signal changes would have affected past system behavior.
+
+Formally, let $v$ denote a specific configuration consisting of signal definitions, projection operators, and policy rules. The action produced by the system during turn $t$ can then be written as
+
+\begin{equation}
+a_t^{(v)} = \pi^{(v)}\left(P^{(v)} x_t^{(v)}\right).
+\end{equation}
+
+Evaluating the same observations under a revised configuration $v'$ yields
+
+\begin{equation}
+a_t^{(v')} = \pi^{(v')}\left(P^{(v')} x_t^{(v')}\right).
+\end{equation}
+
+Comparing these outcomes allows system designers to study how architectural revisions affect system behavior.
+
+The key property of IDE is that behavioral change occurs only through explicit modification of versioned artifacts. System evolution therefore remains intentional and inspectable rather than emerging implicitly through hidden parameter drift.
+
+Instrumented Deterministic Evolution allows systems to improve over time while preserving replayability, traceability, and governance over consequential decision logic.
+
+
+
+
+% ----------------------------
+% Section 12 — Boundaries of the Architecture
+% ----------------------------
+
+\section{Boundaries of the Architecture}
+
+The Emergent State Machine enforces structural separation between observation, interpretation, and authoritative policy selection. While this separation provides important properties of transparency and replayability, it does not eliminate the inherent limits of modeling, measurement, or governance.
+
+\subsection{Projection Quality}
+
+Projection determines how signals are interpreted as structural state. If signal definitions are incomplete, poorly designed, or biased, deterministic policy will faithfully act on those flawed representations.
+
+The ESM therefore does not guarantee correctness of interpretation. Instead, it guarantees that interpretation remains explicit, inspectable, and revisable.
+
+\subsection{Policy Design}
+
+Policy encodes the authoritative decision logic of the system. Deterministic policy may still contain flawed thresholds, incorrect escalation logic, or undesirable governance assumptions.
+
+The architecture ensures that such issues remain visible and modifiable. However, transparency alone does not guarantee that policies themselves are well designed.
+
+\subsection{Partial Observability and Clarification}
+
+Many real-world decision systems operate under partial observability, where the available signals may not uniquely determine the true system state. Formal frameworks such as partially observable Markov decision processes (POMDPs) model this uncertainty by maintaining belief distributions over latent states \citep{kaelbling1998}.
+
+The Emergent State Machine adopts a different architectural strategy. Rather than collapsing uncertainty through probabilistic belief updates within the decision mechanism, ambiguity is surfaced explicitly as a system condition. When available signals do not authorize a unique action under policy constraints, the system may request clarification or additional observation before proceeding.
+
+\begin{equation}
+\pi(y_t) = \text{request\_clarification}
+\end{equation}
+
+Clarification augments the observation set available to the next turn, allowing the system to refine its state representation before selecting a consequential action.
+
+Ambiguity is therefore treated as an observable system condition rather than an internal inference artifact.
+
+\subsection{Generative Assistance}
+
+Generative models may assist with tasks such as interpretation support, explanation generation, or interface construction. Within the ESM architecture, such models operate at the descriptive layer rather than the authoritative layer.
+
+Generative outputs may contribute to observation processing or signal derivation, but they cannot directly authorize actions. All consequential decisions must pass through deterministic policy evaluation.
+
+This constraint allows generative capabilities to support system reasoning while preserving explicit governance over decision authority.
+
+\subsection{Applicability Scope}
+
+The Emergent State Machine is most applicable in systems where automated reasoning influences externally consequential decisions. In domains where outputs are purely generative—such as creative text production—the strict separation between interpretation and authority may be unnecessary.
+
+The architecture therefore represents a design discipline for systems in which interpretability, accountability, and governance of automated decisions are critical requirements.
+
+
+% ----------------------------
+% Section 13 — Related Work 
+% ----------------------------
+
+\section{Related Work}
+\label{sec:related_work}
+
+The Emergent State Machine (ESM) draws on ideas from several established traditions, including control theory, dynamical systems, software architecture, situation awareness research, and recent work on AI interpretability and governance. While each of these areas contributes elements relevant to the architecture, the ESM combines them in a distinct way by enforcing a structural separation between measurement, interpretation, and authoritative policy selection.
+
+\subsection{Control and State-Space Systems}
+
+Control theory has long represented system behavior using explicit state vectors and state-space models \citep{kalman1960,astrom2010}. Classical formulations distinguish between measurements, state estimation, and control input, while decision-theoretic control frameworks treat action selection as an explicit policy over system state \citep{bertsekas2017}. Observers estimate system state from measurements, while controllers determine actions based on the estimated state.
+
+The ESM shares this structural intuition. Signals correspond to measured quantities, the state vector provides an explicit representation of the system’s condition, and policy governs action selection. However, modern decision systems—particularly those incorporating machine learning—often collapse estimation and control into a single opaque model. The ESM reinstates an explicit architectural boundary between descriptive state representation and authoritative policy selection.
+
+\subsection{Dynamical Systems and Trajectories}
+
+The representation of system evolution as trajectories through state space is central to dynamical systems theory. Concepts such as attractors, stability regions, and phase-space trajectories provide a mathematical framework for understanding how systems evolve over time and how interventions influence those trajectories \citep{strogatz2015}.
+
+The ESM adopts this perspective by treating successive turns as a trajectory through interpretable state space. Policy actions act to steer these trajectories toward desirable regions and away from unstable configurations.
+
+\subsection{Situation Awareness}
+
+Research in human factors has emphasized the importance of situation awareness in complex operational environments. Situation awareness describes the process by which operators perceive relevant signals, interpret their meaning, and project the implications for system behavior \citep{endsley1995}.
+
+The ESM architecture provides a computational analogue to this process. Observations become signals, signals are assembled into a structured state representation, and policy evaluates that state to determine appropriate action. In this sense, the architecture can be viewed as a formalization of situational reasoning within a deterministic computational framework.
+
+\subsection{Software Architecture and Separation of Concerns}
+
+The idea that complex systems benefit from explicit architectural separation has deep roots in systems science and software engineering. Simon's analysis of hierarchical systems showed that complex systems become manageable when organized into modular structures with clearly defined responsibilities \citep{simon1962}. Later work in software architecture extended these ideas through principles such as modular decomposition and separation of concerns \citep{parnas1972,dijkstra1974}. Architectural patterns such as Model–View–Controller further demonstrate how separating representation from control logic can reduce coupling between system components \citep{reenskaug1979}.
+The ESM extends this architectural philosophy to automated reasoning systems. Measurement, interpretation, and decision authority are separated into explicit stages, preventing probabilistic interpretation mechanisms from directly authorizing consequential actions.
+
+\subsection{AI Interpretability and Governance}
+
+Recent work in AI interpretability and governance has highlighted the risks associated with opaque decision systems \citep{doshi2017,mittelstadt2016}. Many modern architectures embed both representation and decision logic within learned model parameters, making it difficult to trace decisions to specific inputs or policy assumptions.
+
+The ESM addresses this challenge by ensuring that the reasoning chain from observation to action remains explicit. Signals, projections, and policies are defined as inspectable artifacts whose behavior can be examined and revised independently. This structural transparency enables replayability, failure localization, and controlled system evolution under Instrumented Deterministic Evolution.
+
+\subsection{Distinguishing Features of the ESM}
+
+While each of the above traditions contributes ideas relevant to the architecture, the Emergent State Machine introduces a distinctive combination of principles:
+
+\begin{itemize}
+\item reasoning is organized into explicit \textbf{turns}
+\item system state is represented through \textbf{interpretable signals and state vectors}
+\item projection expresses state in \textbf{policy-relevant coordinates}
+\item authoritative action selection remains \textbf{deterministic and inspectable}
+\item system evolution occurs through \textbf{Instrumented Deterministic Evolution}
+\end{itemize}
+
+Together, these elements produce an architecture in which automated reasoning remains transparent, reproducible, and governable even as systems evolve over time.
+
+
+% ----------------------------
+% Section 14 — Conclusion 
+% ----------------------------
+
+\section{Conclusion}
+
+This paper has presented the mathematical foundations of the Emergent State Machine (ESM), a deterministic architecture for interpretable situational reasoning in complex systems. The architecture organizes reasoning into discrete units called turns, each of which transforms observations into signals, constructs an explicit state vector, projects that state into policy-relevant coordinates, and deterministically selects an action.
+
+By structuring system behavior as a sequence of turns, the ESM makes reasoning processes inspectable, replayable, and auditable. State evolution becomes visible as trajectories through interpretable state space, allowing policies to guide the system toward desirable regions and away from unstable conditions.
+
+The architecture preserves a structural boundary between interpretation and authority. Projection mechanisms describe the current situation, while deterministic policy governs consequential action. This separation ensures that system behavior remains traceable to explicit architectural artifacts rather than hidden model parameters.
+
+Because signals, projections, and policies are explicitly defined and versioned, the architecture supports a regime of Instrumented Deterministic Evolution in which behavioral change occurs only through intentional revision of system components. System evolution therefore becomes controlled and inspectable rather than implicit.
+
+While the architecture does not eliminate the challenges of modeling complex domains, it provides a disciplined framework in which automated reasoning remains transparent, reproducible, and governable. In systems where probabilistic interpretation influences consequential decisions, maintaining an explicit boundary between description and authority is not merely a design preference but an architectural requirement.
+
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+\end{document}
