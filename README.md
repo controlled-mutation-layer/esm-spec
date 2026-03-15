@@ -1,8 +1,50 @@
-## Emergent State Machine: A Turn-Based Control Architecture
+## Emergent State Machine: A Deterministic Architecture for Situational Reasoning in Complex Systems
 
 ## Papers
 
 ## Latest Paper Release
+
+**Emergent State Machine: A Turn-Based Control Architecture — v1.1.0**
+
+A revised version of the formal architecture paper has been released.
+
+Version 1.1.0 introduces a clearer mathematical framing of the Emergent State Machine (ESM) as a turn-based control architecture. The revision improves conceptual clarity while preserving the original formal structure.
+
+Key Updates
+
+Turn formalization
+The architecture is now explicitly defined around the concept of a Turn — a bounded reasoning frame containing observations, signals, state construction, projection, and policy evaluation.
+
+Clearer state construction model
+Signals derived during a turn are formally organized into a state vector, providing an interpretable representation of the system’s current situation.
+
+Improved projection framing
+Projection is clarified as a transformation of the state vector into policy-relevant coordinates, aligning the architecture with state-space formulations in control theory.
+
+Instrumented Deterministic Evolution (IDE)
+The paper now introduces a formal section defining IDE, the mechanism by which ESM systems evolve through explicit versioned changes to detectors, projection logic, and policy artifacts.
+
+Expanded theoretical grounding
+The Related Work section situates the architecture within traditions including:
+
+control theory and state-space modeling
+
+dynamical systems
+
+situation awareness research
+
+software architectural separation
+
+AI interpretability and governance
+
+Scope of the Paper
+
+This paper focuses on the mathematical architecture of the Emergent State Machine.
+Operational governance topics (policy modularity, generative assistance constraints, etc.) are addressed in the broader ESM specification.
+
+Location
+
+The updated paper is available in: [PDF](papers/esm-architecture/esm_architecture_v1.1.0.pdf)
 
 **Emergent State Machine: A Turn-Based Control Architecture — v1.0.0**
 
