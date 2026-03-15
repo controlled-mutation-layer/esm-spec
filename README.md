@@ -70,88 +70,80 @@ Design narrative describing how the Emergent State Machine architecture emerged.
 
 ## Emergent State Machine (ESM)
 
-The **Emergent State Machine (ESM)** is a turn-based control architecture for governing state mutation in model-assisted systems.
-
-ESM makes the decision boundary explicit by separating:
-
-- **Signals** - measurement
-- **Interpretation** - evaluation
-- **Authorization** - authority to mutate state
-
-Each interaction is bound into a **Turn**, which records the versions of signal logic, interpretation logic, and authorization policy in effect at that moment. State may only evolve through this structured boundary.
-
-The result is a system where evolution is:
-
-- Reconstructible
-- Versioned
-- Inspectable
-- Governable
-
-ESM is domain-agnostic. It applies wherever probabilistic interpretation and consequential state mutation must coexist — including AI-assisted systems, digital twins, enterprise workflows, and learning platforms.
+The **Emergent State Machine (ESM)** organizes reasoning into discrete computational units called \emph{turns}. A turn represents one complete cycle of observation, interpretation, policy evaluation, and action selection. Rather than treating system reasoning as a continuous and opaque transformation, the ESM treats each turn as an explicit object that can be inspected, replayed, and reproduced.
 
 For systems that require a deterministic and instrumented mutation boundary, the ESM architecture can be implemented using a **[Controlled Mutation Layer (CML)](https://github.com/controlled-mutation-layer)**.
 
-### ESM Turn Structure
+### ESM Core Loop
 
-````
-### ESM Turn Structure
-
-<<<<<<< HEAD
 ```text
-Input (u_t)
-    │
-    ▼
-[ Signal Layer ]
-  Measurement
-    │
-    ▼
-[ Projection Layer ]
-  Interpretation
-    │
-    ▼
-==============================
- Authoritative Mutation Boundary
- (often implemented via CML)
-==============================
-    │
-    ▼
-[ Authority Layer ]
-  Policy Decision
-    │
-    ▼
-State Mutation (m_t → m_{t+1})
-````
+                    Emergent State Machine (ESM)
 
-=======
-Input (u*t)
-│
-▼
-┌───────────────┐
-│ Signal Layer │
-│ Measurement │
-└───────────────┘
-│
-▼
-┌─────────────────┐
-│ Projection Layer │
-│ Interpretation │
-└─────────────────┘
-│
-▼
-┌─────────────────┐
-│ Authority Layer │
-│ Policy Decision │
-└─────────────────┘
-│
-▼
-State Mutation (m*{t+1})
+   Environment / Domain
+   (patient, student, machine, workflow)
+                │
+                ▼
+        ┌───────────────────────┐
+        │     Observations      │
+        │ raw measurements,     │
+        │ events, reports       │
+        └───────────┬───────────┘
+                    ▼
+        ┌───────────────────────┐
+        │       Signals         │
+        │ direct + derived      │
+        │ trends, ratios,       │
+        │ interactions          │
+        └───────────┬───────────┘
+                    ▼
+        ┌───────────────────────┐
+        │     State Vector      │
+        │ interpretable current │
+        │ situation             │
+        └───────────┬───────────┘
+                    ▼
+        ┌───────────────────────┐
+        │    Activation Gate    │
+        │ should this reasoning │
+        │ path activate now?    │
+        └───────┬─────────┬─────┘
+                │ yes     │ no
+                ▼         └────────────→ continue monitoring
+        ┌───────────────────────┐
+        │  Policy Projection    │
+        │ state expressed in    │
+        │ decision coordinates  │
+        └───────────┬───────────┘
+                    ▼
+        ┌───────────────────────┐
+        │   Policy Selection    │
+        │ deterministic choice  │
+        │ of next action        │
+        └───────────┬───────────┘
+                    ▼
+        ┌───────────────────────┐
+        │       Action          │
+        │ alert, prompt,        │
+        │ intervention, routing │
+        └───────────┬───────────┘
+                    ▼
+        ┌───────────────────────┐
+        │    State Evolution    │
+        │ next observations     │
+        │ arrive, loop repeats  │
+        └───────────┬───────────┘
+                    │
+                    └────────────────────→ next Turn
 
-> > > > > > > c8b92b4 (Add DLC design narrative preprint v0.9.0)
-> > > > > > > Each **Turn** records the versions of:
+Turn structure:
+T_t = (o_t, S_t, x_t, g_t, y_t, a_t)
 
-- signal detectors
-- projection logic
-- policy rules
+Across time:
+T_0 → T_1 → T_2 → T_3 → ...
+
+Control objective:
+Guide trajectories toward desirable / stable regions of state space
+while preserving inspectability, replayability, and governance.
 
 This makes every state transition **replayable, inspectable, and governable**.
 
@@ -194,13 +186,6 @@ It does not contain application code.
 
 ---
 
-## White Paper
-
-- _ESM: A Turn-Based Control Architecture (v0.9)_  
-  [Download PDF](papers/esm-architecture/Emergent_State_Machine__Control_Architecture_v1.0.0.pdf)
-
----
-
 ## Engineering Specification
 
 Canonical engineering specification:
@@ -232,6 +217,47 @@ Current version: **v1.0.0**
 ---
 
 ## Release History
+
+### v1.1.0 — ESM Specification Update
+
+This update introduces the first standalone Emergent State Machine Specification (esm_spec) document.
+
+The specification defines the architectural structure of the ESM independent of any specific implementation or application domain.
+
+Highlights
+
+Formal definition of the Turn as the fundamental unit of ESM reasoning.
+
+Clear separation of measurement, interpretation, and authority within the architecture.
+
+Definition of signals, state vectors, projection, and policy as explicit system artifacts.
+
+Introduction of control state for deterministic multi-turn system behavior.
+
+Specification of Instrumented Deterministic Evolution (IDE) as the mechanism governing system evolution.
+
+Clarification of architectural boundaries that prevent interpretive mechanisms from directly authorizing consequential actions.
+
+Purpose of the Specification
+
+The goal of the ESM specification is to provide a domain-agnostic architectural reference that can support implementations across multiple domains, including:
+
+decision support systems
+
+operational monitoring
+
+AI-assisted reasoning systems
+
+governance-sensitive automated systems
+
+The specification is intended to evolve alongside the mathematical paper and reference implementations.
+
+Relationship to the Math Paper
+
+The mathematical paper describes the formal structure of the architecture.
+The specification provides an implementation-oriented description of the system components and execution model.
+
+Both documents will evolve in parallel as the architecture develops.
 
 ### v1.0.0 — First Public Release
 
@@ -272,8 +298,8 @@ See:
 
 If you reference the Emergent State Machine architecture in research or technical work, please cite:
 
-**Emergent State Machine (ESM) Architectural Specification v1.0.0**  
-Emergent State Machine Project  
+**Emergent State Machine (ESM) Architectural Specification v1.0.0**
+Emergent State Machine Project
 [https://github.com/emergent-state-machine/esm-spec](https://github.com/emergent-state-machine/esm-spec)
 
 ---
@@ -301,3 +327,4 @@ If you are building systems that require:
 - Safe, versioned evolution
 
 We invite collaboration and discussion.
+```
